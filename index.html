@@ -1,0 +1,1096 @@
+<title>Higher Web Parsons Problems</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: problem list on the left; question (context, design, code, command) then the two code lists on the right */
+:root {
+  --bg: #f6f4f6; --surface: #ffffff; --fg: #241a20; --muted: #6b5d65; --line: #ddd4d9;
+  --accent: #630935; --accent-fg: #ffffff; --accent-soft: #f3e4ec;
+  --silver: #d1d2d4;
+  --good: #1d7a46; --good-soft: #e2f3e8; --bad: #b3261e; --bad-soft: #fbe7e5;
+  --code-bg: #fbf9fa;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", Verdana, sans-serif;
+  --font-code: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #17121a; --surface: #211a21; --fg: #f1eaee; --muted: #b4a6ae; --line: #3b3039;
+  --accent: #e28ab2; --accent-fg: #2a0d1b; --accent-soft: #3a1f2e; --silver: #4a4b4f;
+  --good: #72d49c; --good-soft: #163221; --bad: #ff8d84; --bad-soft: #3b1b1a; --code-bg: #1c161c;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #17121a; --surface: #211a21; --fg: #f1eaee; --muted: #b4a6ae; --line: #3b3039;
+  --accent: #e28ab2; --accent-fg: #2a0d1b; --accent-soft: #3a1f2e; --silver: #4a4b4f;
+  --good: #72d49c; --good-soft: #163221; --bad: #ff8d84; --bad-soft: #3b1b1a; --code-bg: #1c161c;
+  color-scheme: dark }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
+
+.topbar { background: var(--accent); color: var(--accent-fg);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.topbar-inner { max-width: 1240px; margin: 0 auto; padding-block: 14px; display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; justify-content: space-between; }
+.topbar h1 { margin: 0; font-size: 1.35rem; text-wrap: balance; }
+.topbar h1 small { font-weight: 400; opacity: .85; font-size: .9rem; margin-left: 8px; }
+.progress { font-size: .95rem; font-variant-numeric: tabular-nums; }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; align-items: start; }
+
+nav.problems { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+.plist { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.group-label { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 14px 0 6px; font-weight: 700; }
+.group-label:first-child { margin-top: 0; }
+.plist button { width: 100%; text-align: left; font: inherit; font-size: .95rem; color: var(--fg); background: transparent;
+  border: 1px solid transparent; border-radius: 6px; padding: 7px 10px; cursor: pointer; display: flex; gap: 8px; align-items: center; }
+.plist button:hover { background: var(--surface); border-color: var(--line); }
+.plist button[aria-current="true"] { background: var(--surface); border-color: var(--accent); font-weight: 700; }
+.plist button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.plist .num { font-family: var(--font-code); font-size: .8rem; color: var(--muted); min-width: 1.6em; font-variant-numeric: tabular-nums; }
+.plist .tick { margin-left: auto; color: var(--good); font-weight: 700; font-size: .85rem; font-variant-numeric: tabular-nums; }
+.eyebrow .hints { color: var(--muted); text-transform: none; letter-spacing: 0; font-weight: 400; font-size: .85rem; }
+.block.hinted { border-left-color: var(--accent); }
+.block.hinted .mark { color: var(--accent); }
+
+main { min-width: 0; }
+.eyebrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 4px; }
+.eyebrow span { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+.eyebrow .kind { color: var(--accent); }
+.eyebrow .marks { color: var(--accent-fg); background: var(--accent); border-radius: 4px; padding: 1px 8px; letter-spacing: .04em; }
+h2 { margin: 0 0 10px; font-size: 1.6rem; line-height: 1.2; text-wrap: balance; }
+.question { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; margin-bottom: 16px; display: grid; gap: 14px; min-width: 0; }
+.question p { margin: 0; max-width: 72ch; }
+.question .command { font-weight: 700; }
+.question ul.req { margin: -6px 0 0; padding-left: 22px; display: grid; gap: 2px; max-width: 72ch; }
+.given { min-width: 0; }
+.given p { margin: 0 0 6px; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.given pre { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px;
+  font-family: var(--font-code); font-size: .84rem; line-height: 1.5; overflow-x: auto; }
+.given pre mark { background: var(--accent-soft); color: var(--accent); font-weight: 500; border-radius: 3px; padding: 0 4px; }
+.how { font-size: .9rem; color: var(--muted); margin: 0 0 12px; max-width: 75ch; }
+
+.target { margin: 0; min-width: 0; }
+.target figcaption { font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 6px; }
+.target figcaption span { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.wf { display: block; width: 100%; max-width: 560px; height: auto; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.wf .box { fill: var(--surface); stroke: currentColor; stroke-width: 1.5; }
+.wf .dash { stroke-dasharray: 6 4; }
+.wf .faded { opacity: .5; }
+.wf .lbl { font: 700 12px var(--font-code); fill: currentColor; }
+.wf .txt { font: 13px var(--font-body); fill: currentColor; }
+.wf .bold { font-weight: 700; }
+.wf .note { font: 12.5px var(--font-body); fill: var(--accent); }
+.wf .nline { stroke: var(--accent); stroke-width: 1.3; fill: none; }
+.wf .ahead { fill: var(--accent); }
+.wf .cross { stroke: var(--muted); stroke-width: 1; }
+.wf .ink { fill: currentColor; }
+.browser { max-width: 560px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #ffffff; }
+.browser .bar { background: #e8e5e8; padding: 7px 10px; display: flex; gap: 6px; align-items: center; font: 12px var(--font-body); color: #555555; }
+.browser .bar i { width: 10px; height: 10px; border-radius: 50%; background: #c9c3c8; display: inline-block; }
+.browser .bar b { font-weight: 400; margin-left: 8px; background: #ffffff; border-radius: 4px; padding: 2px 10px; }
+.browser .page { color: #000000; background: #ffffff; font: 16px "Times New Roman", Times, serif; line-height: 1.25; padding: 8px; overflow-x: auto; }
+.browser .page a { color: #0000ee; text-decoration: underline; }
+
+.boards { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.board { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; min-width: 0; display: flex; flex-direction: column; }
+.board h3 { margin: 0; padding: 10px 14px; font-size: .95rem; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px; }
+.board h3 span { font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
+.board.answer { border-color: var(--accent); }
+.list { list-style: none; margin: 0; padding: 10px; min-height: 220px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.answer .list:empty::before { content: "Drag lines here, or tap a line to move it."; color: var(--muted); font-size: .9rem; padding: 18px 8px; text-align: center; border: 2px dashed var(--line); border-radius: 6px; }
+
+.block { font-family: var(--font-code); font-size: .84rem; line-height: 1.45; background: var(--code-bg); border: 1px solid var(--line);
+  border-left: 4px solid var(--silver); border-radius: 5px; padding: 7px 10px; cursor: grab; display: flex; gap: 8px; align-items: flex-start;
+  touch-action: none; user-select: none; -webkit-user-select: none; }
+.block code { font-family: inherit; white-space: pre-wrap; word-break: break-word; flex: 1; min-width: 0; }
+.block:hover { border-color: var(--accent); border-left-color: var(--accent); }
+.block:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.block .mark { font-family: var(--font-body); font-weight: 700; width: 1.2em; text-align: center; flex: none; }
+.block.right { background: var(--good-soft); border-left-color: var(--good); }
+.block.right .mark { color: var(--good); }
+.block.wrong { background: var(--bad-soft); border-left-color: var(--bad); }
+.block.wrong .mark { color: var(--bad); }
+.block.sortable-ghost { opacity: .35; }
+.block.sortable-chosen { cursor: grabbing; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 0; }
+.btn { font: inherit; font-weight: 700; font-size: .95rem; border-radius: 6px; padding: 9px 16px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.feedback { margin-top: 16px; border-radius: 8px; padding: 12px 14px; border: 1px solid var(--line); background: var(--surface); }
+.feedback.ok { border-color: var(--good); background: var(--good-soft); }
+.feedback.no { border-color: var(--bad); }
+.feedback p { margin: 0 0 6px; }
+.feedback p:last-child { margin-bottom: 0; }
+.feedback ul { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 6px; }
+.feedback code { font-family: var(--font-code); font-size: .82rem; background: var(--code-bg); padding: 1px 4px; border-radius: 3px; word-break: break-word; }
+
+.nav-results { width: 100%; margin-bottom: 14px; }
+.results h2 { margin-bottom: 4px; }
+.results .lead { margin: 0 0 18px; color: var(--muted); }
+.results h3 { font-size: 1.05rem; margin: 26px 0 10px; }
+.totals { display: flex; flex-wrap: wrap; gap: 12px; }
+.total-card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; min-width: 150px; }
+.total-card b { display: block; font-size: 1.7rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.total-card span { font-size: .85rem; color: var(--muted); }
+.topic-rows { display: grid; gap: 10px; max-width: 640px; }
+.topic-row { display: grid; grid-template-columns: 130px minmax(0, 1fr) 90px; gap: 12px; align-items: center; font-size: .95rem; }
+.topic-row .track { height: 12px; background: var(--line); border-radius: 6px; overflow: hidden; }
+.topic-row .fill { height: 100%; background: var(--accent); border-radius: 6px; }
+.topic-row .num { text-align: right; font-variant-numeric: tabular-nums; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.results table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+.results th, .results td { text-align: left; padding: 8px 9px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.results td.wrap { white-space: normal; min-width: 150px; }
+.results th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.results tr:last-child td { border-bottom: 0; }
+.results td.n { text-align: right; font-variant-numeric: tabular-nums; }
+.pill { display: inline-block; font-size: .78rem; font-weight: 700; padding: 1px 8px; border-radius: 10px; }
+.pill.full { background: var(--good-soft); color: var(--good); }
+.pill.part { background: var(--accent-soft); color: var(--accent); }
+.pill.none { background: var(--bad-soft); color: var(--bad); }
+.pill.todo { background: var(--line); color: var(--muted); }
+.mistakes { display: grid; gap: 12px; max-width: 80ch; }
+.mistakes .m { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--bad); border-radius: 6px; padding: 10px 12px; }
+.mistakes .m p { margin: 0; }
+.mistakes .m .t { font-weight: 700; font-size: .9rem; margin-bottom: 6px; }
+.mistakes ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.mistakes code { font-family: var(--font-code); font-size: .82rem; background: var(--code-bg); padding: 1px 4px; border-radius: 3px; word-break: break-word; }
+.revise { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.revise button { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+.results .actions { margin-top: 26px; }
+.send { background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; padding: 14px 16px; max-width: 760px; display: grid; gap: 12px; }
+.send p { margin: 0; }
+.send .fields { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.send label { display: grid; gap: 4px; font-size: .9rem; font-weight: 700; }
+.send input { font: inherit; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); min-width: 0; }
+.send input:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.send textarea { font-family: var(--font-code); font-size: .8rem; width: 100%; min-height: 84px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--code-bg); color: var(--fg); resize: vertical; word-break: break-all; }
+
+@media (max-width: 900px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); }
+  nav.problems { position: static; }
+  .plist { grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; padding-bottom: 4px; }
+  .group-label { display: none; }
+}
+@media (max-width: 700px) { .boards { grid-template-columns: minmax(0, 1fr); } .topic-row { grid-template-columns: 100px minmax(0, 1fr) 70px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <h1>Higher Web Parsons Problems <small>St Margaret's High School · Computing Science</small></h1>
+    <div class="progress" id="progress"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="problems" aria-label="Problems" id="problemNav"></nav>
+
+  <main>
+    <div id="workView">
+    <div class="eyebrow"><span class="kind" id="pKind"></span><span class="marks" id="pMarks"></span><span class="hints" id="pHints"></span></div>
+    <h2 id="pTitle"></h2>
+
+    <div class="question">
+      <p id="pContext"></p>
+      <figure class="target" id="pVisual"></figure>
+      <div class="given" id="pGiven" hidden>
+        <p id="pGivenLabel">Code</p>
+        <pre id="pGivenCode"></pre>
+      </div>
+      <p class="command" id="pCommand"></p>
+      <ul class="req" id="pBullets" hidden></ul>
+      <p id="pAfter" hidden></p>
+    </div>
+
+    <p class="how">Drag the lines you need into <strong>Your answer</strong>, in order. Some lines are not needed. You can also tap a line (or press Enter) to move it across, and use Alt + arrow keys to move it up or down.</p>
+
+    <div class="boards">
+      <section class="board">
+        <h3>Code lines <span id="poolCount"></span></h3>
+        <ul class="list" id="pool" aria-label="Code lines"></ul>
+      </section>
+      <section class="board answer">
+        <h3>Your answer <span id="ansCount"></span></h3>
+        <ul class="list" id="answer" aria-label="Your answer"></ul>
+      </section>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" id="checkBtn" type="button">Check answer</button>
+      <button class="btn" id="resetBtn" type="button">Start again</button>
+      <button class="btn" id="hintBtn" type="button">Hint (costs 1 mark)</button>
+      <button class="btn" id="nextBtn" type="button">Next problem</button>
+    </div>
+
+    <div class="feedback" id="feedback" aria-live="polite" hidden></div>
+    </div>
+    <section class="results" id="resultsView" hidden aria-live="polite"></section>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+<script>
+/* ---------- Drawing helpers for the designs ---------- */
+const ARROW = '\x3cdefs>\x3cmarker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">\x3cpath class="ahead" d="M0,0 L10,5 L0,10 Z"/>\x3c/marker>\x3c/defs>';
+function pointer(x, y) {
+  return '\x3cpath transform="translate(' + x + ',' + y + ')" d="M0,0 L0,17 L4.5,13 L7.5,20 L10,19 L7,12 L13,12 Z" fill="#ffffff" stroke="#000000" stroke-width="1.2" stroke-linejoin="round"/>';
+}
+function wf(viewBox, label, inner) {
+  return '\x3csvg class="wf" viewBox="' + viewBox + '" role="img" aria-label="' + label + '">' + ARROW + inner + '\x3c/svg>';
+}
+function imgBox(x, y, w, h, name) {
+  return '\x3crect class="box" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '"/>' +
+    '\x3cline class="cross" x1="' + x + '" y1="' + y + '" x2="' + (x + w) + '" y2="' + (y + h) + '"/>' +
+    '\x3cline class="cross" x1="' + (x + w) + '" y1="' + y + '" x2="' + x + '" y2="' + (y + h) + '"/>' +
+    '\x3ctext class="lbl" x="' + (x + 6) + '" y="' + (y + 16) + '">' + name + '\x3c/text>';
+}
+function browser(file, body) {
+  return '\x3cdiv class="browser" inert>\x3cdiv class="bar">\x3ci>\x3c/i>\x3ci>\x3c/i>\x3ci>\x3c/i>\x3cb>' + file + '\x3c/b>\x3c/div>\x3cdiv class="page">' + body + '\x3c/div>\x3c/div>';
+}
+function figure(cap, note, html) { return { cap: cap, note: note, html: html }; }
+
+/* ---------- Problems ----------
+   Each line has a key k. Lines that share a key can go in either order.
+   A formal parameter that receives an image is always called thisGraphic; this is only ever the actual parameter. */
+const PROBLEMS = [
+  /* ===================== HTML and CSS ===================== */
+  {
+    group: "HTML and CSS", kind: "Assignment style", marks: 4, title: "HTML Layout Elements",
+    context: "Kelvin Climbing Wall wants a new home page. The wireframe for the page is shown below.",
+    vis: figure("Wireframe", "", wf("0 0 520 342", "Wireframe of the Kelvin Climbing Wall home page",
+      '\x3crect class="box" x="10" y="10" width="500" height="58"/>\x3ctext class="lbl" x="502" y="26" text-anchor="end">header\x3c/text>' +
+      imgBox(20, 20, 90, 38, "logo.png") + '\x3ctext class="txt bold" x="290" y="45" text-anchor="middle">Kelvin Climbing Wall\x3c/text>' +
+      '\x3crect class="box" x="10" y="76" width="500" height="32"/>\x3ctext class="lbl" x="18" y="97">nav\x3c/text>\x3ctext class="txt" x="260" y="97" text-anchor="middle">Home     Classes     Prices\x3c/text>' +
+      '\x3crect class="box" x="10" y="116" width="500" height="168"/>\x3ctext class="lbl" x="18" y="133">main\x3c/text>' +
+      '\x3crect class="box dash" x="30" y="142" width="460" height="60"/>\x3ctext class="txt bold" x="40" y="164">Beginners\x3c/text>\x3ctext class="txt" x="40" y="186">Taster sessions run every Saturday.\x3c/text>' +
+      '\x3crect class="box dash" x="30" y="212" width="460" height="60"/>\x3ctext class="txt bold" x="40" y="234">Opening times\x3c/text>\x3ctext class="txt" x="40" y="256">Open daily 9am to 10pm.\x3c/text>' +
+      '\x3crect class="box" x="10" y="292" width="500" height="40"/>\x3ctext class="lbl" x="18" y="317">footer\x3c/text>\x3ctext class="txt" x="260" y="317" text-anchor="middle">© Kelvin Climbing Wall\x3c/text>')),
+    command: "Using the wireframe, write the HTML code for the body of the home page. Each area of the page must use the appropriate HTML5 element. Give the two sections the ids beginners and openingTimes.",
+    lines: [
+      ["\x3cbody>",1],["  \x3cheader>",2],["    \x3cimg src=\"logo.png\">",3],["    \x3ch1>Kelvin Climbing Wall\x3c/h1>",4],["  \x3c/header>",5],
+      ["  \x3cnav>",6],["    \x3cul>",7],
+      ["      \x3cli>\x3ca href=\"home.html\">Home\x3c/a>\x3c/li>",8],["      \x3cli>\x3ca href=\"classes.html\">Classes\x3c/a>\x3c/li>",9],["      \x3cli>\x3ca href=\"prices.html\">Prices\x3c/a>\x3c/li>",10],
+      ["    \x3c/ul>",11],["  \x3c/nav>",12],
+      ["  \x3cmain>",13],
+      ["    \x3csection id=\"beginners\">",14],["      \x3ch2>Beginners\x3c/h2>",15],["      \x3cp>Taster sessions run every Saturday.\x3c/p>",16],["    \x3c/section>",17],
+      ["    \x3csection id=\"openingTimes\">",18],["      \x3ch2>Opening times\x3c/h2>",19],["      \x3cp>Open daily 9am to 10pm.\x3c/p>",20],["    \x3c/section>",21],
+      ["  \x3c/main>",22],["  \x3cfooter>",23],["    \x3cp>© Kelvin Climbing Wall\x3c/p>",24],["  \x3c/footer>",25],["\x3c/body>",26]
+    ],
+    distractors: [
+      ["  \x3chead>", "The head element holds information about the page, such as its title. The page banner goes in a header element."],
+      ["  \x3cdiv id=\"nav\">", "The navigation links should be held in the HTML5 nav element."],
+      ["    \x3csection id=\"beginners\" id=\"openingTimes\">", "An element can only have one id."]
+    ]
+  },
+  {
+    group: "HTML and CSS", kind: "Question paper style", marks: 3, title: "Grouping Selectors",
+    context: "Part of the CSS code used to style the Braeside Garden Centre website is shown below. The finished page is also shown.",
+    vis: figure("Finished page", "The appearance of the page must not change", browser("home.html",
+      '\x3cheader style="background:darkgreen;color:#ffffff;display:flow-root">\x3ch1 style="margin:14px 8px;font-size:26px">Braeside Garden Centre\x3c/h1>\x3c/header>' +
+      '\x3csection style="padding:8px">\x3ch2 style="color:darkgreen;padding:8px;margin:0;font-size:20px">Spring bulbs\x3c/h2>\x3cp style="margin:8px 0">Tulips and daffodils are in stock now.\x3c/p>\x3c/section>' +
+      '\x3cfooter style="background:darkgreen;color:#ffffff;padding:8px">Open 7 days a week\x3c/footer>')),
+    givenLabel: "CSS code",
+    given: "header {background-color: darkgreen; color: white;}\nfooter {background-color: darkgreen; color: white; padding: 8px;}\nh2 {color: darkgreen; padding: 8px;}\nsection {padding: 8px;}",
+    command: "Making use of grouping selectors, re-write the CSS code so that it is more efficient. The rules can be written in any order.",
+    lines: [
+      ["header, footer {background-color: darkgreen; color: white;}",1],
+      ["footer, h2, section {padding: 8px;}",1],
+      ["h2 {color: darkgreen;}",1]
+    ],
+    distractors: [
+      ["header, footer, h2, section {padding: 8px;}", "The header had no padding in the original code, so this would change the page."],
+      ["header footer {background-color: darkgreen; color: white;}", "With no comma this is a descendant selector. It would only style a footer contained in a header."],
+      ["header, footer, h2 {color: white;}", "The h2 headings are dark green, not white."]
+    ]
+  },
+  {
+    group: "HTML and CSS", kind: "Question paper style", marks: 3, title: "Descendant Selectors",
+    context: "The Carron Valley Cinema website has a page comparing two ticket types. Part of the HTML code is shown below.",
+    vis: figure("Finished page", "", browser("tickets.html",
+      '\x3cnav style="background:#333333;padding:6px 8px">\x3ca style="color:#ffffff;margin-right:16px">Home\x3c/a>\x3ca style="color:#ffffff;margin-right:16px">Films\x3c/a>\x3ca style="color:#ffffff">Tickets\x3c/a>\x3c/nav>' +
+      '\x3cdiv style="display:flex;gap:12px;font-family:Georgia,serif;margin:8px 0">' +
+      '\x3cdiv style="flex:1;min-width:0">\x3ch2 style="margin:6px 0;font-size:20px">Standard\x3c/h2>\x3cul style="margin:4px 0;padding-left:22px">\x3cli>Any seat\x3c/li>\x3cli>£8.50\x3c/li>\x3c/ul>\x3c/div>' +
+      '\x3cdiv style="flex:1;min-width:0">\x3ch2 style="margin:6px 0;font-size:20px">Premium\x3c/h2>\x3cul style="margin:4px 0;padding-left:22px">\x3cli>Recliner seat\x3c/li>\x3cli>£12.00\x3c/li>\x3c/ul>\x3c/div>\x3c/div>' +
+      '\x3cp style="margin:6px 0">\x3ca>Book now\x3c/a>\x3c/p>' +
+      '\x3cfooter>\x3cp style="font-size:12px;margin:4px 0">© Carron Valley Cinema\x3c/p>\x3c/footer>')),
+    givenLabel: "HTML code",
+    given: "\x3cnav>\n  \x3ca href=\"home.html\">Home\x3c/a>\n  \x3ca href=\"films.html\">Films\x3c/a>\n  \x3ca href=\"tickets.html\">Tickets\x3c/a>\n\x3c/nav>\n\x3csection id=\"standard\"> … \x3c/section>\n\x3csection id=\"premium\"> … \x3c/section>\n\x3cp>\x3ca href=\"book.html\">Book now\x3c/a>\x3c/p>\n\x3cfooter>\n  \x3cp>© Carron Valley Cinema\x3c/p>\n\x3c/footer>",
+    command: "Write the CSS rules so that:",
+    bullets: [
+      "the text in both the Standard and Premium sections is Georgia",
+      "only the paragraphs in the footer have a font size of 12px",
+      "only the links in the nav element are white"
+    ],
+    lines: [
+      ["#standard, #premium {font-family: Georgia;}",1],
+      ["footer p {font-size: 12px;}",1],
+      ["nav a {color: white;}",1]
+    ],
+    distractors: [
+      ["#standard #premium {font-family: Georgia;}", "With no comma this is a descendant selector. It would only style a premium section contained inside the standard section."],
+      ["footer, p {font-size: 12px;}", "This is a grouping selector. It would make the footer and every paragraph on the page 12px."],
+      ["a {color: white;}", "This would make every link white, including the Book now link."]
+    ]
+  },
+  {
+    group: "HTML and CSS", kind: "Question paper style", marks: 2, title: "Margins and Padding",
+    context: "A bakery's home page shows a special offer. The design below shows the spacing for the offer box.",
+    vis: figure("Design", "", wf("0 0 520 222", "Offer box with 25 pixels above it and 15 pixels of space inside",
+      '\x3crect class="box" x="10" y="10" width="500" height="202"/>' +
+      '\x3ctext class="txt bold" x="30" y="40">Today at the bakery\x3c/text>' +
+      '\x3cline class="nline" x1="90" y1="50" x2="90" y2="78" marker-start="url(#ah)" marker-end="url(#ah)"/>\x3ctext class="note" x="100" y="68">25 pixels\x3c/text>' +
+      '\x3crect class="box" x="30" y="80" width="460" height="96"/>' +
+      '\x3crect class="box dash faded" x="45" y="95" width="430" height="66"/>' +
+      '\x3ctext class="txt" x="56" y="132">Two for one on all scones today!\x3c/text>' +
+      '\x3ctext class="note" x="260" y="200" text-anchor="middle">the text is 15 pixels in from every edge of the offer box\x3c/text>')),
+    givenLabel: "HTML code",
+    given: "…\n\x3ch2>Today at the bakery\x3c/h2>\n\x3cdiv id=\"offer\">\n  \x3cp>Two for one on all scones today!\x3c/p>\n\x3c/div>\n…",
+    command: "Using the design, write the CSS rule for the offer box to implement the spacing shown. The box has a light yellow background.",
+    lines: [
+      ["#offer {",1],
+      ["  background-color: lightyellow;",2],["  margin-top: 25px;",2],["  padding: 15px;",2],
+      ["}",3]
+    ],
+    distractors: [
+      ["  padding-top: 25px;", "The 25 pixel gap is outside the box, so it is a margin, not padding."],
+      ["  margin: 15px;", "The 15 pixel space is inside the edge of the box, so it is padding, not a margin."]
+    ]
+  },
+  {
+    group: "HTML and CSS", kind: "Question paper style", marks: 3, title: "Positioning Elements",
+    context: "Braeside Adventure Park is designing its home page. The Rides and Prices sections should be displayed side by side, and the Events section displayed underneath.",
+    vis: figure("Wireframe", "", wf("0 0 520 318", "Two sections side by side with a third below",
+      '\x3ctext class="note" x="156" y="40" text-anchor="middle">390px × 220px\x3c/text>\x3ctext class="note" x="394" y="40" text-anchor="middle">390px × 220px\x3c/text>' +
+      '\x3crect class="box" x="40" y="50" width="232" height="130"/>\x3ctext class="lbl" x="48" y="67">#rides\x3c/text>\x3ctext class="txt" x="156" y="120" text-anchor="middle">Rides\x3c/text>' +
+      '\x3crect class="box" x="278" y="50" width="232" height="130"/>\x3ctext class="lbl" x="286" y="67">#prices\x3c/text>\x3ctext class="txt" x="394" y="120" text-anchor="middle">Prices\x3c/text>' +
+      '\x3crect class="box" x="40" y="186" width="470" height="80"/>\x3ctext class="lbl" x="48" y="203">#events\x3c/text>\x3ctext class="txt" x="275" y="232" text-anchor="middle">Events\x3c/text>' +
+      '\x3ctext class="note" x="40" y="290">• 10px gap between the Rides and Prices sections\x3c/text>' +
+      '\x3ctext class="note" x="40" y="308">• Events is 790px × 150px, with a 10px gap between it and the sections above\x3c/text>')),
+    givenLabel: "CSS code",
+    given: "#rides, #prices {width:390px; height:220px; float:left;}\n\x3cmark>your rules for #prices and #events go here\x3c/mark>",
+    command: "Complete the CSS code to allow all three sections to be displayed as shown in the wireframe.",
+    lines: [
+      ["#prices {",1],["  margin-left: 10px;",2],["}",3],
+      ["#events {",4],
+      ["  width: 790px;",5],["  height: 150px;",5],["  margin-top: 10px;",5],["  clear: both;",5],
+      ["}",6]
+    ],
+    distractors: [
+      ["  float: left;", "If #events was floated it would move up beside the other sections instead of starting below them."],
+      ["  padding-left: 10px;", "Padding adds space inside the section. The 10px gap is outside it, so it must be a margin."]
+    ]
+  },
+  {
+    group: "HTML and CSS", kind: "Question paper style", marks: 3, title: "Horizontal Navigation Bar",
+    context: "Highland Coaches wants the navigation bar shown below on every page of its website.",
+    vis: figure("Intended design", "The cursor is over Tickets", browser("home.html",
+      '\x3cnav style="height:38px">\x3cul style="list-style-type:none;margin:0;padding:0">' +
+      '\x3cli style="float:left;width:130px">\x3ca style="display:block;padding:8px">Home\x3c/a>\x3c/li>' +
+      '\x3cli style="float:left;width:130px">\x3ca style="display:block;padding:8px">Timetables\x3c/a>\x3c/li>' +
+      '\x3cli style="float:left;width:130px;position:relative">\x3ca style="display:block;padding:8px;background:yellow;color:navy">Tickets\x3c/a>' +
+      '\x3csvg style="position:absolute;left:52px;top:20px" width="16" height="22" viewBox="0 0 16 22" aria-hidden="true">' + pointer(1, 1) + '\x3c/svg>\x3c/li>' +
+      '\x3cli style="float:left;width:130px">\x3ca style="display:block;padding:8px">Contact\x3c/a>\x3c/li>\x3c/ul>\x3c/nav>')),
+    givenLabel: "CSS code",
+    given: "nav {height:38px;}\n\x3cmark>your rules go here\x3c/mark>",
+    command: "Complete the CSS code to style the horizontal navigation bar so that:",
+    bullets: [
+      "no bullet points are shown",
+      "each list item is 130px wide and placed horizontally",
+      "each link fills its list item, with 8px padding",
+      "when the cursor is placed over a link, the background colour is yellow and the text colour is navy"
+    ],
+    lines: [
+      ["nav ul {list-style-type:none;}",1],
+      ["nav ul li {float:left; width:130px;}",1],
+      ["nav ul li a {display:block; padding:8px;}",1],
+      ["nav ul li a:hover {background-color:yellow; color:navy;}",1]
+    ],
+    distractors: [
+      ["nav:hover {background-color:yellow; color:navy;}", "The hover must apply to the anchor elements. This would change the whole navigation bar."],
+      ["nav ul li {float:right; width:130px;}", "Floating right would line the links up from the right-hand side, in reverse order."],
+      ["ul {list-style-type:none;}", "This would remove the bullet points from every list on the page, not just the list in the nav."]
+    ]
+  },
+
+  /* ===================== Forms ===================== */
+  {
+    group: "Forms", kind: "Assignment style", marks: 4, title: "HTML Form (from a Wireframe)",
+    context: "Pawfect Grooming wants an online booking form. The final design for the form is shown below.",
+    vis: figure("Form wireframe", "", wf("0 0 520 366", "Form wireframe for a dog grooming booking",
+      '\x3ctext class="txt" x="20" y="24">Dog\'s name:\x3c/text>\x3crect class="box" x="20" y="32" width="220" height="26"/>' +
+      '\x3cline class="nline" x1="246" y1="45" x2="258" y2="45"/>\x3ctext class="note" x="264" y="49">text · required · up to 25 characters\x3c/text>' +
+      '\x3ctext class="txt" x="20" y="84">Size of dog:\x3c/text>' +
+      '\x3ccircle class="box" cx="27" cy="101" r="6"/>\x3ctext class="txt" x="38" y="106">Small\x3c/text>' +
+      '\x3ccircle class="box" cx="97" cy="101" r="6"/>\x3ctext class="txt" x="108" y="106">Medium\x3c/text>' +
+      '\x3ccircle class="box" cx="177" cy="101" r="6"/>\x3ctext class="txt" x="188" y="106">Large\x3c/text>' +
+      '\x3cline class="nline" x1="246" y1="101" x2="258" y2="101"/>\x3ctext class="note" x="264" y="105">choose one · required\x3c/text>' +
+      '\x3ctext class="txt" x="20" y="136">Services:\x3c/text>\x3crect class="box" x="20" y="144" width="150" height="76"/>' +
+      '\x3ctext class="txt" x="28" y="162">Bath\x3c/text>\x3ctext class="txt" x="28" y="179">Haircut\x3c/text>\x3ctext class="txt" x="28" y="196">Nail trim\x3c/text>\x3ctext class="txt" x="28" y="213">Teeth clean\x3c/text>' +
+      '\x3cline class="nline" x1="176" y1="182" x2="258" y2="182"/>\x3ctext class="note" x="264" y="178">all four shown · choose one or more\x3c/text>\x3ctext class="note" x="264" y="194">required\x3c/text>' +
+      '\x3ctext class="txt" x="20" y="246">Any other information:\x3c/text>\x3crect class="box" x="20" y="254" width="220" height="62"/>' +
+      '\x3cline class="nline" x1="246" y1="285" x2="258" y2="285"/>\x3ctext class="note" x="264" y="281">text area · 5 rows · required\x3c/text>\x3ctext class="note" x="264" y="297">up to 300 characters\x3c/text>' +
+      '\x3crect class="box" x="20" y="328" width="140" height="28" rx="4"/>\x3ctext class="txt" x="90" y="347" text-anchor="middle">Book appointment\x3c/text>')),
+    command: "Edit the ‘booking.html’ file to implement the form shown in the wireframe. All validation must be included, and all fields must be completed before the form is submitted.",
+    lines: [
+      ["\x3cform>",1],
+      ["  Dog's name:\x3cbr>",2],["  \x3cinput type=\"text\" name=\"dogName\" maxlength=\"25\" required>\x3cbr>",3],
+      ["  Size of dog:\x3cbr>",4],
+      ["  \x3cinput type=\"radio\" name=\"size\" value=\"small\" required> Small",5],
+      ["  \x3cinput type=\"radio\" name=\"size\" value=\"medium\"> Medium",6],
+      ["  \x3cinput type=\"radio\" name=\"size\" value=\"large\"> Large\x3cbr>",7],
+      ["  Services:\x3cbr>",8],["  \x3cselect name=\"services\" size=\"4\" multiple required>",9],
+      ["    \x3coption value=\"bath\">Bath\x3c/option>",10],["    \x3coption value=\"haircut\">Haircut\x3c/option>",11],
+      ["    \x3coption value=\"nails\">Nail trim\x3c/option>",12],["    \x3coption value=\"teeth\">Teeth clean\x3c/option>",13],
+      ["  \x3c/select>\x3cbr>",14],
+      ["  Any other information:\x3cbr>",15],["  \x3ctextarea name=\"info\" rows=\"5\" maxlength=\"300\" required>\x3c/textarea>\x3cbr>",16],
+      ["  \x3cinput type=\"submit\" value=\"Book appointment\">",17],
+      ["\x3c/form>",18]
+    ],
+    distractors: [
+      ["  \x3cinput type=\"textarea\" name=\"info\" rows=\"5\" maxlength=\"300\" required>\x3cbr>", "textarea is its own element, with a closing \x3c/textarea> tag. It is not an input type."],
+      ["  \x3cselect name=\"services\" size=\"4\" required>", "Without multiple, only one service could be chosen."],
+      ["  \x3cinput type=\"text\" name=\"dogName\" max=\"25\" required>\x3cbr>", "max sets the top of a range for a number. The number of characters is limited with maxlength."],
+      ["  \x3cinput type=\"radio\" name=\"dogSize\" value=\"medium\"> Medium", "All the radio buttons in a group must have the same name, or more than one could be selected."]
+    ]
+  },
+  {
+    group: "Forms", kind: "Question paper style", marks: 2, title: "HTML Form (Re-write a line)",
+    context: "Customers use the Lomond Theatre website to book tickets. Customers can book between 1 and 12 tickets at a time. The HTML code below allows the user to enter the number of tickets.",
+    vis: figure("Form wireframe", "", wf("0 0 520 108", "Number of tickets input",
+      '\x3ctext class="txt" x="20" y="28">Number of tickets:\x3c/text>\x3crect class="box" x="20" y="36" width="80" height="26"/>' +
+      '\x3cpath class="ink" d="M88,42 l5,6 h-10 Z M88,57 l5,-6 h-10 Z"/>' +
+      '\x3cline class="nline" x1="106" y1="49" x2="130" y2="49"/>\x3ctext class="note" x="136" y="53">number · must be entered · 1 to 12\x3c/text>' +
+      '\x3crect class="box" x="20" y="72" width="80" height="26" rx="4"/>\x3ctext class="txt" x="60" y="90" text-anchor="middle">Continue\x3c/text>')),
+    givenLabel: "HTML code",
+    given: "\x3cform>\n  …\n  \x3cp>Number of tickets:\x3c/p>\n  \x3cinput type=\"number\" name=\"tickets\">\n  …\n\x3c/form>",
+    command: "Re-write the line of HTML code to ensure that the number of tickets is entered and is valid. Arrange the parts to build the line. The attributes can go in any order.",
+    lines: [
+      ["\x3cinput",1],
+      ["type=\"number\"",2],["name=\"tickets\"",2],["min=\"1\"",2],["max=\"12\"",2],["required",2],
+      [">",3]
+    ],
+    distractors: [
+      ["minlength=\"1\"", "minlength limits the number of characters typed. A range check on a number uses min."],
+      ["maxlength=\"12\"", "maxlength limits the number of characters typed. A range check on a number uses max."],
+      ["type=\"text\"", "The number of tickets is a number, so the input type stays as number."]
+    ]
+  },
+
+  /* ===================== JavaScript ===================== */
+  {
+    group: "JavaScript", kind: "Question paper style", marks: 2, title: "Rollover Image (inline JavaScript)",
+    context: "The Strathearn Spa website has a ‘Book now’ button image. The image should change to bookNowGlow.png when the cursor moves over it, and change back to bookNow.png when the cursor moves away.",
+    vis: figure("Intended effect", "", wf("0 0 520 150", "Book now button before and after the cursor moves over it",
+      '\x3crect x="40" y="30" width="170" height="54" rx="10" fill="#2d5f7d"/>\x3ctext x="125" y="63" text-anchor="middle" fill="#ffffff" style="font:700 17px var(--font-body)">Book now\x3c/text>' +
+      '\x3crect x="306" y="26" width="178" height="62" rx="13" fill="#9fdcf5"/>\x3crect x="310" y="30" width="170" height="54" rx="10" fill="#3d8fbf"/>\x3ctext x="395" y="63" text-anchor="middle" fill="#ffffff" style="font:700 17px var(--font-body)">Book now\x3c/text>' +
+      pointer(420, 62) +
+      '\x3cline class="nline" x1="226" y1="57" x2="290" y2="57" marker-end="url(#ah)"/>' +
+      '\x3ctext class="txt" x="125" y="125" text-anchor="middle">Cursor away: bookNow.png\x3c/text>\x3ctext class="txt" x="395" y="125" text-anchor="middle">Cursor over: bookNowGlow.png\x3c/text>')),
+    command: "Write the HTML code for the image. The JavaScript should be written inside the events, using this.",
+    lines: [
+      ["\x3cimg src=\"bookNow.png\"",1],
+      ["  onmouseover=\"this.src='bookNowGlow.png'\"",2],
+      ["  onmouseout=\"this.src='bookNow.png'\"",2],
+      [">",3]
+    ],
+    distractors: [
+      ["  onclick=\"this.src='bookNowGlow.png'\"", "onclick runs when the image is clicked, not when the cursor moves over it."],
+      ["  onmouseout=\"this.src='bookNowGlow.png'\"", "When the cursor moves away, the original image, bookNow.png, must be shown again."]
+    ]
+  },
+  {
+    group: "JavaScript", kind: "Assignment style", marks: 3, title: "Rollover Image (functions)",
+    context: "The Tartan Threads clothing website shows a photograph of the front of each jacket. When the cursor moves over the photograph, it should change to show the back of the jacket. When the cursor moves away, the front should be shown again.",
+    vis: figure("Intended effect", "", wf("0 0 520 200", "Front of jacket changing to back of jacket",
+      '\x3crect x="10" y="10" width="220" height="150" fill="#eef1ec"/>' +
+      '\x3cpath d="M80,32 L102,26 L138,26 L160,32 L188,104 L170,110 L156,76 L156,148 L84,148 L84,76 L70,110 L52,104 Z" fill="#2e6b4f"/>' +
+      '\x3cline x1="120" y1="28" x2="120" y2="148" stroke="#d8d8d8" stroke-width="2"/>\x3crect x="92" y="112" width="18" height="3" fill="#cfd8cf"/>\x3crect x="130" y="112" width="18" height="3" fill="#cfd8cf"/>' +
+      '\x3crect x="290" y="10" width="220" height="150" fill="#eef1ec"/>' +
+      '\x3cpath d="M360,32 L382,26 L418,26 L440,32 L468,104 L450,110 L436,76 L436,148 L364,148 L364,76 L350,110 L332,104 Z" fill="#2e6b4f"/>' +
+      '\x3cpath d="M364,56 Q400,66 436,56" stroke="#24563f" stroke-width="2" fill="none"/>' + pointer(410, 92) +
+      '\x3cline class="nline" x1="238" y1="85" x2="282" y2="85" marker-end="url(#ah)"/>' +
+      '\x3ctext class="txt" x="120" y="185" text-anchor="middle">Cursor away: jacketFront.jpg\x3c/text>\x3ctext class="txt" x="400" y="185" text-anchor="middle">Cursor over: jacketBack.jpg\x3c/text>')),
+    command: "Write the JavaScript functions and the HTML code for the image. One function shows the back and one shows the front. Write showBack first, then showFront. The formal parameter in each function is thisGraphic.",
+    lines: [
+      ["\x3cscript>",1],
+      ["function showBack(thisGraphic) {",2],["  thisGraphic.src=\"jacketBack.jpg\";",3],["}",4],
+      ["function showFront(thisGraphic) {",5],["  thisGraphic.src=\"jacketFront.jpg\";",6],["}",7],
+      ["\x3c\/script>",8],
+      ["\x3cimg src=\"jacketFront.jpg\" onmouseover=\"showBack(this)\" onmouseout=\"showFront(this)\">",9]
+    ],
+    distractors: [
+      ["function showBack(this) {", "this is the actual parameter, used in the call: showBack(this). The formal parameter in the function needs its own name: thisGraphic."],
+      ["\x3cimg src=\"jacketFront.jpg\" onmouseover=\"showFront(this)\" onmouseout=\"showBack(this)\">", "The calls are the wrong way round. The back would only show when the cursor moves away."],
+      ["  thisGraphic.src=jacketBack.jpg;", "The file name is text, so it must be in quotes: \"jacketBack.jpg\"."]
+    ]
+  },
+  {
+    group: "JavaScript", kind: "Question paper style", marks: 4, title: "Resize (functions)",
+    context: "The Glen Affric Trails website shows a trail map 300 pixels wide and 200 pixels high. When the map is clicked, it should be shown 600 pixels wide and 400 pixels high. When the cursor moves away from the map, it should return to its original size.",
+    vis: figure("Intended effect", "", wf("0 0 520 296", "Trail map before and after it is clicked",
+      imgBox(20, 70, 150, 100, "trailMap.jpg") + '\x3ctext class="txt" x="95" y="190" text-anchor="middle">300 × 200 pixels\x3c/text>' +
+      '\x3cline class="nline" x1="178" y1="120" x2="202" y2="120" marker-end="url(#ah)"/>' +
+      imgBox(210, 20, 300, 200, "trailMap.jpg") + pointer(370, 112) +
+      '\x3ctext class="txt" x="360" y="240" text-anchor="middle">after click: 600 × 400 pixels\x3c/text>' +
+      '\x3ctext class="note" x="260" y="280" text-anchor="middle">cursor moves away: back to 300 × 200 pixels\x3c/text>')),
+    command: "Write the JavaScript functions enlargeMap and shrinkMap, and the HTML code for the image, so that the map works as described. Write enlargeMap first. Use getElementById to find the image.",
+    lines: [
+      ["\x3cscript>",1],
+      ["function enlargeMap() {",2],
+      ["  document.getElementById(\"trailMap\").style.width=\"600px\";",3],["  document.getElementById(\"trailMap\").style.height=\"400px\";",3],
+      ["}",4],
+      ["function shrinkMap() {",5],
+      ["  document.getElementById(\"trailMap\").style.width=\"300px\";",6],["  document.getElementById(\"trailMap\").style.height=\"200px\";",6],
+      ["}",7],
+      ["\x3c\/script>",8],
+      ["\x3cimg src=\"trailMap.jpg\" id=\"trailMap\" onclick=\"enlargeMap()\" onmouseout=\"shrinkMap()\">",9]
+    ],
+    distractors: [
+      ["\x3cimg src=\"trailMap.jpg\" onclick=\"enlargeMap()\" onmouseout=\"shrinkMap()\">", "The image has no id, so getElementById(\"trailMap\") would not find it."],
+      ["\x3cimg src=\"trailMap.jpg\" id=\"trailMap\" onclick=\"enlargeMap\" onmouseout=\"shrinkMap\">", "A function call needs brackets: enlargeMap()."],
+      ["  document.getElementById(\"trailMap\").style.width=600px;", "The value must be in quotes: \"600px\"."]
+    ]
+  },
+  {
+    group: "JavaScript", kind: "Assignment style", marks: 4, title: "Display Text (functions)",
+    context: "Forth Boat Trips wants the details of each trip to appear only when the cursor is over the trip's heading. When the cursor moves away, the details should be hidden again. The details are hidden when the page loads.",
+    vis: figure("Wireframe", "The cursor is over the heading", wf("0 0 520 182", "Trip details shown while the cursor is over the heading",
+      '\x3ctext class="txt bold" x="20" y="34">Three Bridges Cruise\x3c/text>' + pointer(110, 22) +
+      '\x3crect class="box dash" x="20" y="48" width="320" height="48"/>\x3ctext class="lbl" x="28" y="64">div id="bridgeTrip"\x3c/text>\x3ctext class="txt" x="28" y="86">90 minutes · £18 per adult\x3c/text>' +
+      '\x3cline class="nline" x1="346" y1="72" x2="362" y2="72"/>\x3ctext class="note" x="368" y="68">shown while the cursor\x3c/text>\x3ctext class="note" x="368" y="84">is over the heading\x3c/text>' +
+      '\x3cg class="faded">\x3ctext class="txt bold" x="20" y="130">Seal Spotting Trip\x3c/text>\x3c/g>' +
+      '\x3ctext class="note" x="20" y="166">cursor moves away: details hidden again\x3c/text>')),
+    command: "Write the two JavaScript functions and the HTML code for the Three Bridges Cruise. The function showDetails shows the details and the function hideDetails hides them. Write showDetails first.",
+    lines: [
+      ["\x3cscript>",1],
+      ["function showDetails() {",2],["  document.getElementById(\"bridgeTrip\").style.display=\"block\";",3],["}",4],
+      ["function hideDetails() {",5],["  document.getElementById(\"bridgeTrip\").style.display=\"none\";",6],["}",7],
+      ["\x3c\/script>",8],
+      ["\x3ch3 onmouseover=\"showDetails()\" onmouseout=\"hideDetails()\">Three Bridges Cruise\x3c/h3>",9],
+      ["\x3cdiv id=\"bridgeTrip\" style=\"display:none\">",10],["  \x3cp>90 minutes · £18 per adult\x3c/p>",11],["\x3c/div>",12]
+    ],
+    distractors: [
+      ["  document.getElementById(bridgeTrip).style.display=\"block\";", "The id is text, so it must be in quotes: getElementById(\"bridgeTrip\")."],
+      ["\x3cdiv id=\"bridgeTrip\" style=\"display:block\">", "The details must be hidden when the page loads, so display must be none."],
+      ["\x3ch3 onclick=\"showDetails()\" onmouseout=\"hideDetails()\">Three Bridges Cruise\x3c/h3>", "The details should appear when the cursor moves over the heading, so onmouseover is needed, not onclick."]
+    ]
+  },
+  {
+    group: "JavaScript", kind: "Assignment style", marks: 4, title: "Display Sections (functions)",
+    context: "The Wee Bothy café website has a ‘Menu’ page with an image of each dish. A description of each dish should only appear when its image is clicked.",
+    vis: figure("Wireframe", "After the stovies image is clicked", wf("0 0 520 232", "Three dish images with only the stovies description shown",
+      imgBox(20, 16, 150, 90, "soup.jpg") + imgBox(185, 16, 150, 90, "stovies.jpg") + imgBox(350, 16, 150, 90, "cranachan.jpg") + pointer(262, 66) +
+      '\x3crect class="box" x="20" y="122" width="480" height="54"/>\x3ctext class="lbl" x="28" y="139">section id="stovieText"\x3c/text>\x3ctext class="txt" x="28" y="162">Stovies with oatcakes and beetroot.\x3c/text>' +
+      '\x3ctext class="note" x="20" y="200">• all descriptions are hidden when the page loads\x3c/text>' +
+      '\x3ctext class="note" x="20" y="218">• only one description is shown at a time\x3c/text>')),
+    command: "Edit the ‘menu.html’ file by adding code to:",
+    bullets: [
+      "hide all of the descriptions when the page loads",
+      "show the description for a dish when its image is clicked, so that only one description appears at a time"
+    ],
+    after: "Use one function, hideAllDishes, to hide every description. Each dish has its own function (showSoup, showStovies and showCranachan) that calls hideAllDishes and then shows its own description. Write the functions in that order.",
+    lines: [
+      ["\x3cscript>",1],
+      ["function hideAllDishes() {",2],
+      ["  document.getElementById(\"soupText\").style.display=\"none\";",3],
+      ["  document.getElementById(\"stovieText\").style.display=\"none\";",3],
+      ["  document.getElementById(\"cranText\").style.display=\"none\";",3],
+      ["}",4],
+      ["function showSoup() {",5],["  hideAllDishes();",6],["  document.getElementById(\"soupText\").style.display=\"block\";",7],["}",8],
+      ["function showStovies() {",9],["  hideAllDishes();",10],["  document.getElementById(\"stovieText\").style.display=\"block\";",11],["}",12],
+      ["function showCranachan() {",13],["  hideAllDishes();",14],["  document.getElementById(\"cranText\").style.display=\"block\";",15],["}",16],
+      ["\x3c\/script>",17],
+      ["\x3cimg src=\"soup.jpg\" onclick=\"showSoup()\">",18],
+      ["\x3cimg src=\"stovies.jpg\" onclick=\"showStovies()\">",19],
+      ["\x3cimg src=\"cranachan.jpg\" onclick=\"showCranachan()\">",20],
+      ["\x3csection id=\"soupText\" style=\"display:none\">Cullen skink with crusty bread.\x3c/section>",21],
+      ["\x3csection id=\"stovieText\" style=\"display:none\">Stovies with oatcakes and beetroot.\x3c/section>",21],
+      ["\x3csection id=\"cranText\" style=\"display:none\">Cranachan with raspberries and toasted oats.\x3c/section>",21]
+    ],
+    distractors: [
+      ["  document.getElementById(soupText).style.display=\"block\";", "The id is text, so it must be in quotes: getElementById(\"soupText\")."],
+      ["\x3cimg src=\"soup.jpg\" onclick=\"showSoup\">", "A function call needs brackets: showSoup()."],
+      ["  hideAllDishes;", "A function call needs brackets: hideAllDishes();"]
+    ]
+  }
+];
+
+/* ---------- App ---------- */
+const STORE_KEY = "smhs-higher-web-parsons-scores-v1";
+let scores = {};   /* best score for each problem, by index */
+try { scores = JSON.parse(localStorage.getItem(STORE_KEY) || "{}") || {}; } catch (e) { scores = {}; }
+function saveScores() { try { localStorage.setItem(STORE_KEY, JSON.stringify(scores)); } catch (e) {} }
+const STATS_KEY = "smhs-higher-web-parsons-stats-v1";
+let stats = {};   /* for each problem: checks made, hints taken, distractor lines placed in an answer */
+try { stats = JSON.parse(localStorage.getItem(STATS_KEY) || "{}") || {}; } catch (e) { stats = {}; }
+function stat(i) { if (!stats[i]) stats[i] = { checks: 0, hints: 0, mistakes: [] }; return stats[i]; }
+function saveStats() { try { localStorage.setItem(STATS_KEY, JSON.stringify(stats)); } catch (e) {} }
+const hintsUsed = {};   /* hints used on each problem in this visit; Start again does not reset them */
+let solvedNow = false;
+
+const $ = id => document.getElementById(id);
+const pool = $("pool"), answer = $("answer"), feedback = $("feedback");
+let current = 0, items = {}, checks = 0, justDragged = false;
+
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function buildNav() {
+  const nav = $("problemNav");
+  nav.innerHTML = "";
+  const ul = document.createElement("ul");
+  ul.className = "plist";
+  let lastGroup = null;
+  PROBLEMS.forEach((p, i) => {
+    if (p.group !== lastGroup) {
+      const g = document.createElement("li");
+      g.className = "group-label";
+      g.textContent = p.group;
+      ul.appendChild(g);
+      lastGroup = p.group;
+    }
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("aria-current", i === current ? "true" : "false");
+    b.innerHTML = '\x3cspan class="num">\x3c/span>\x3cspan class="t">\x3c/span>' + (scores[i] !== undefined ? '\x3cspan class="tick" aria-label="scored ' + scores[i] + ' out of ' + p.marks + '">' + scores[i] + '/' + p.marks + '\x3c/span>' : "");
+    b.querySelector(".num").textContent = String(i + 1).padStart(2, "0");
+    b.querySelector(".t").textContent = p.title;
+    b.addEventListener("click", () => load(i));
+    li.appendChild(b);
+    ul.appendChild(li);
+  });
+  const rb = document.createElement("button");
+  rb.type = "button";
+  rb.className = "btn nav-results";
+  rb.textContent = "Results";
+  rb.addEventListener("click", showResults);
+  nav.append(rb, ul);
+  const done = Object.keys(scores).length;
+  const got = Object.values(scores).reduce((a, b) => a + b, 0);
+  const total = PROBLEMS.reduce((a, q) => a + q.marks, 0);
+  $("progress").textContent = "Score " + got + " / " + total + " · " + done + " of " + PROBLEMS.length + " complete";
+}
+
+function makeBlock(item) {
+  const li = document.createElement("li");
+  li.className = "block";
+  li.tabIndex = 0;
+  li.dataset.id = item.id;
+  const mark = document.createElement("span");
+  mark.className = "mark";
+  mark.setAttribute("aria-hidden", "true");
+  const code = document.createElement("code");
+  code.textContent = item.t;
+  li.append(mark, code);
+  li.addEventListener("click", () => { if (!justDragged) moveAcross(li); });
+  li.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); moveAcross(li); }
+    else if (e.altKey && e.key === "ArrowUp" && li.previousElementSibling) { e.preventDefault(); li.parentNode.insertBefore(li, li.previousElementSibling); li.focus(); changed(); }
+    else if (e.altKey && e.key === "ArrowDown" && li.nextElementSibling) { e.preventDefault(); li.parentNode.insertBefore(li.nextElementSibling, li); li.focus(); changed(); }
+  });
+  return li;
+}
+
+function moveAcross(li) {
+  (li.parentNode === pool ? answer : pool).appendChild(li);
+  li.focus();
+  changed();
+}
+
+function changed() {
+  document.querySelectorAll(".block").forEach(b => { b.classList.remove("right", "wrong", "hinted"); b.querySelector(".mark").textContent = ""; });
+  feedback.hidden = true;
+  counts();
+}
+
+function counts() {
+  $("poolCount").textContent = pool.children.length + " lines";
+  $("ansCount").textContent = answer.children.length + " lines";
+}
+
+function load(i) {
+  $("resultsView").hidden = true;
+  $("workView").hidden = false;
+  current = i; checks = 0; items = {};
+  const p = PROBLEMS[i];
+  $("pKind").textContent = p.kind;
+  $("pMarks").textContent = p.marks + (p.marks === 1 ? " mark" : " marks");
+  $("pTitle").textContent = p.title;
+  $("pContext").textContent = p.context;
+  const v = p.vis;
+  $("pVisual").innerHTML = '\x3cfigcaption>' + v.cap + (v.note ? ' \x3cspan>· ' + v.note + '\x3c/span>' : '') + '\x3c/figcaption>' + v.html;
+
+  $("pGiven").hidden = !p.given;
+  $("pGivenLabel").textContent = p.givenLabel || "Code";
+  const pre = $("pGivenCode");
+  pre.textContent = "";
+  if (p.given) {
+    /* text outside &lt;mark>…&lt;/mark> is plain text; the marked part shows where the answer goes */
+    p.given.split(/(\x3cmark>.*?\x3c\/mark>)/).forEach(part => {
+      const m = part.match(/^\x3cmark>(.*)\x3c\/mark>$/);
+      if (m) { const el = document.createElement("mark"); el.textContent = m[1]; pre.appendChild(el); }
+      else pre.appendChild(document.createTextNode(part));
+    });
+  }
+
+  $("pCommand").textContent = p.command;
+  const ul = $("pBullets");
+  ul.innerHTML = "";
+  (p.bullets || []).forEach(b => { const li = document.createElement("li"); li.textContent = b; ul.appendChild(li); });
+  ul.hidden = !p.bullets;
+  $("pAfter").textContent = p.after || "";
+  $("pAfter").hidden = !p.after;
+
+  const all = [];
+  p.lines.forEach((l, n) => all.push({ id: "l" + n, t: l[0], k: l[1] }));
+  p.distractors.forEach((d, n) => all.push({ id: "d" + n, t: d[0], why: d[1], distractor: true }));
+  all.forEach(it => items[it.id] = it);
+  pool.innerHTML = ""; answer.innerHTML = "";
+  shuffle(all).forEach(it => pool.appendChild(makeBlock(it)));
+  solvedNow = false;
+  if (hintsUsed[i] === undefined) hintsUsed[i] = 0;
+  showHints();
+  $("nextBtn").hidden = i === PROBLEMS.length - 1;
+  feedback.hidden = true;
+  counts();
+  buildNav();
+}
+
+function solutionLines() {
+  return Object.values(items).filter(it => !it.distractor).sort((a, b) => a.k - b.k);
+}
+
+function reasonList(list) {
+  const ul = document.createElement("ul");
+  list.forEach(it => {
+    const li = document.createElement("li");
+    const c = document.createElement("code");
+    c.textContent = it.t.trim();
+    li.append(c, document.createTextNode(" " + it.why));
+    ul.appendChild(li);
+  });
+  return ul;
+}
+
+function check() {
+  checks++;
+  const st = stat(current);
+  st.checks++;
+  const sol = solutionLines();
+  const placed = [...answer.children].map(li => ({ li, it: items[li.dataset.id] }));
+  let rightCount = 0;
+  const wrongDistractors = [];
+  placed.forEach(({ li, it }, pos) => {
+    let ok = false;
+    if (it.distractor) {
+      wrongDistractors.push(it);
+      if (!st.mistakes.includes(it.id)) st.mistakes.push(it.id);
+    } else if (pos < sol.length) {
+      const expectedKey = sol[pos].k;
+      ok = sol.some(s => s.k === expectedKey && s.t === it.t);
+    }
+    li.classList.toggle("right", ok);
+    li.classList.toggle("wrong", !ok);
+    li.querySelector(".mark").textContent = ok ? "✓" : "✗";
+    if (ok) rightCount++;
+  });
+
+  const missing = sol.length - placed.filter(p => !p.it.distractor).length;
+  const allRight = rightCount === sol.length && placed.length === sol.length;
+
+  feedback.innerHTML = "";
+  feedback.className = "feedback " + (allRight ? "ok" : "no");
+  const head = document.createElement("p");
+  if (allRight) {
+    const p = PROBLEMS[current];
+    const score = Math.max(0, p.marks - hintsUsed[current]);
+    head.innerHTML = "\x3cstrong>Correct.\x3c/strong> You scored " + score + " out of " + p.marks +
+      (hintsUsed[current] ? " (" + hintsUsed[current] + (hintsUsed[current] === 1 ? " hint" : " hints") + " used)." : ".");
+    solvedNow = true;
+    if (scores[current] === undefined || score > scores[current]) { scores[current] = score; saveScores(); }
+    buildNav();
+    if (Object.keys(scores).length === PROBLEMS.length || current === PROBLEMS.length - 1) {
+      const rb = document.createElement("button");
+      rb.type = "button"; rb.className = "btn primary"; rb.textContent = "See your results";
+      rb.style.marginTop = "10px";
+      rb.addEventListener("click", showResults);
+      setTimeout(() => feedback.appendChild(rb), 0);
+    }
+  } else {
+    head.innerHTML = "\x3cstrong>Not yet.\x3c/strong> " + rightCount + " of " + sol.length + " needed lines are in the right place.";
+  }
+  feedback.appendChild(head);
+  if (!allRight && missing > 0) {
+    const m = document.createElement("p");
+    m.textContent = missing === 1 ? "One needed line is still in Code lines." : missing + " needed lines are still in Code lines.";
+    feedback.appendChild(m);
+  }
+  if (wrongDistractors.length) {
+    const t = document.createElement("p");
+    t.textContent = wrongDistractors.length === 1 ? "This line is not needed:" : "These lines are not needed:";
+    feedback.append(t, reasonList(wrongDistractors));
+  }
+  if (allRight) {
+    const t = document.createElement("p");
+    t.textContent = "Why the other lines were wrong:";
+    feedback.append(t, reasonList(Object.values(items).filter(it => it.distractor)));
+  }
+  feedback.hidden = false;
+  saveStats();
+}
+
+function showHints() {
+  const n = hintsUsed[current] || 0;
+  const left = Math.max(0, PROBLEMS[current].marks - n);
+  $("pHints").textContent = n ? n + (n === 1 ? " hint used" : " hints used") + " · worth " + left + " now" : "";
+}
+
+/* A hint fixes the first mistake in the answer: it removes an unneeded line,
+   or puts the correct line into the first wrong or empty position. Each hint costs 1 mark. */
+function hint() {
+  if (solvedNow) return;
+  const sol = solutionLines();
+  const ans = [...answer.children];
+  const fits = (it, pos) => !it.distractor && pos < sol.length && sol.some(s => s.k === sol[pos].k && s.t === it.t);
+  let i = 0;
+  while (i < ans.length && fits(items[ans[i].dataset.id], i)) i++;
+
+  changed();
+  feedback.innerHTML = "";
+  feedback.className = "feedback no";
+  const msg = document.createElement("p");
+
+  if (i === ans.length && ans.length === sol.length) {
+    msg.innerHTML = "\x3cstrong>No hint needed.\x3c/strong> Your answer looks complete. Press Check answer.";
+    feedback.append(msg); feedback.hidden = false;
+    return;
+  }
+
+  if (i < ans.length && items[ans[i].dataset.id].distractor) {
+    const li = ans[i], it = items[li.dataset.id];
+    pool.prepend(li);
+    li.classList.add("hinted"); li.querySelector(".mark").textContent = "!";
+    msg.innerHTML = "\x3cstrong>Hint.\x3c/strong> This line has been moved out of your answer because it is not needed:";
+    feedback.append(msg, reasonList([it]));
+  } else {
+    const wantKey = sol[i].k;
+    const wantTexts = sol.filter(s => s.k === wantKey).map(s => s.t);
+    /* any unused needed line whose text belongs at this position (identical lines such as } are interchangeable) */
+    const choice = [...pool.children, ...ans.slice(i)].find(li => {
+      const it = items[li.dataset.id];
+      return !it.distractor && wantTexts.includes(it.t);
+    });
+    if (!choice) return;
+    answer.insertBefore(choice, answer.children[i] || null);
+    choice.classList.add("hinted"); choice.querySelector(".mark").textContent = "!";
+    msg.innerHTML = "\x3cstrong>Hint.\x3c/strong> Line " + (i + 1) + " of your answer has been put in place for you. The lines above it were already right.";
+    feedback.append(msg);
+  }
+
+  hintsUsed[current] = (hintsUsed[current] || 0) + 1;
+  stat(current).hints++; saveStats();
+  showHints();
+  const cost = document.createElement("p");
+  cost.textContent = "This question is now worth " + Math.max(0, PROBLEMS[current].marks - hintsUsed[current]) + " out of " + PROBLEMS[current].marks + ".";
+  feedback.append(cost);
+  feedback.hidden = false;
+  counts();
+}
+
+/* ---------- Results ---------- */
+function esc(s) { return String(s).replace(/[&\x3c>\x22]/g, c => ({ "&": "&amp;", "\x3c": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function statusOf(i) {
+  const p = PROBLEMS[i];
+  if (scores[i] === undefined) return (stats[i] && stats[i].checks) ? ["In progress", "todo"] : ["Not attempted", "todo"];
+  if (scores[i] === p.marks) return ["Full marks", "full"];
+  if (scores[i] === 0) return ["No marks", "none"];
+  return ["Part marks", "part"];
+}
+let resetArmed = false;
+
+function showResults() {
+  $("workView").hidden = true;
+  const v = $("resultsView");
+  v.hidden = false;
+  resetArmed = false;
+  window.scrollTo({ top: 0 });
+
+  const total = PROBLEMS.reduce((a, q) => a + q.marks, 0);
+  const got = Object.values(scores).reduce((a, b) => a + b, 0);
+  const done = Object.keys(scores).length;
+  const pct = total ? Math.round(100 * got / total) : 0;
+  const hintsAll = Object.values(stats).reduce((a, s) => a + (s.hints || 0), 0);
+
+  const groups = [];
+  PROBLEMS.forEach((p, i) => {
+    let g = groups.find(x => x.name === p.group);
+    if (!g) { g = { name: p.group, got: 0, total: 0 }; groups.push(g); }
+    g.total += p.marks;
+    g.got += scores[i] || 0;
+  });
+
+  let html = '\x3cp class="eyebrow">\x3cspan class="kind">Your results\x3c/span>\x3c/p>' +
+    '\x3ch2>Performance breakdown\x3c/h2>' +
+    '\x3cp class="lead">Scores are your best score on each problem, after any hints. Problems you have not finished count as 0.\x3c/p>' +
+    '\x3cdiv class="totals">' +
+      '\x3cdiv class="total-card">\x3cb>' + got + ' / ' + total + '\x3c/b>\x3cspan>marks (' + pct + '%)\x3c/span>\x3c/div>' +
+      '\x3cdiv class="total-card">\x3cb>' + done + ' / ' + PROBLEMS.length + '\x3c/b>\x3cspan>problems complete\x3c/span>\x3c/div>' +
+      '\x3cdiv class="total-card">\x3cb>' + hintsAll + '\x3c/b>\x3cspan>hints used\x3c/span>\x3c/div>' +
+    '\x3c/div>';
+
+  html += '\x3ch3>By topic\x3c/h3>\x3cdiv class="topic-rows">';
+  groups.forEach(g => {
+    const gp = g.total ? Math.round(100 * g.got / g.total) : 0;
+    html += '\x3cdiv class="topic-row">\x3cspan>' + esc(g.name) + '\x3c/span>\x3cdiv class="track">\x3cdiv class="fill" style="width:' + gp + '%">\x3c/div>\x3c/div>\x3cspan class="num">' + g.got + ' / ' + g.total + '\x3c/span>\x3c/div>';
+  });
+  html += '\x3c/div>';
+
+  html += '\x3ch3>By problem\x3c/h3>\x3cdiv class="table-wrap">\x3ctable>\x3cthead>\x3ctr>\x3cth>#\x3c/th>\x3cth>Problem\x3c/th>\x3cth>Style\x3c/th>\x3cth class="n">Score\x3c/th>\x3cth class="n">Hints\x3c/th>\x3cth class="n">Checks\x3c/th>\x3cth>Status\x3c/th>\x3c/tr>\x3c/thead>\x3ctbody>';
+  PROBLEMS.forEach((p, i) => {
+    const s = stats[i] || { checks: 0, hints: 0 };
+    const st = statusOf(i);
+    html += '\x3ctr>\x3ctd class="n">' + (i + 1) + '\x3c/td>\x3ctd class="wrap">' + esc(p.title) + '\x3c/td>\x3ctd>' + esc(p.kind.replace(" style", "")) + '\x3c/td>' +
+      '\x3ctd class="n">' + (scores[i] === undefined ? '–' : scores[i]) + ' / ' + p.marks + '\x3c/td>\x3ctd class="n">' + (s.hints || 0) + '\x3c/td>\x3ctd class="n">' + (s.checks || 0) + '\x3c/td>' +
+      '\x3ctd>\x3cspan class="pill ' + st[1] + '">' + st[0] + '\x3c/span>\x3c/td>\x3c/tr>';
+  });
+  html += '\x3c/tbody>\x3c/table>\x3c/div>';
+
+  const withMistakes = PROBLEMS.map((p, i) => ({ p, i, ids: (stats[i] && stats[i].mistakes) || [] })).filter(x => x.ids.length);
+  html += '\x3ch3>Mistakes to review\x3c/h3>';
+  if (!withMistakes.length) {
+    html += '\x3cp>You have not put any of the wrong lines into an answer yet.\x3c/p>';
+  } else {
+    html += '\x3cp class="lead">These are the wrong lines you put into an answer, and why each one is wrong.\x3c/p>\x3cdiv class="mistakes">';
+    withMistakes.forEach(x => {
+      html += '\x3cdiv class="m">\x3cp class="t">' + (x.i + 1) + '. ' + esc(x.p.title) + '\x3c/p>\x3cul>';
+      x.ids.forEach(id => {
+        const d = x.p.distractors[parseInt(id.slice(1), 10)];
+        if (d) html += '\x3cli>\x3ccode>' + esc(d[0].trim()) + '\x3c/code> ' + esc(d[1]) + '\x3c/li>';
+      });
+      html += '\x3c/ul>\x3c/div>';
+    });
+    html += '\x3c/div>';
+  }
+
+  html += '\x3ch3>Send your results to your teacher\x3c/h3>\x3cdiv class="send">' +
+    '\x3cp>Type your name and class, then make your results code. Copy the code and paste it into your Teams assignment.\x3c/p>' +
+    '\x3cdiv class="fields">\x3clabel for="pupilName">Name\x3cinput id="pupilName" type="text" maxlength="40" autocomplete="name">\x3c/label>' +
+    '\x3clabel for="pupilClass">Class\x3cinput id="pupilClass" type="text" maxlength="12" size="8">\x3c/label>' +
+    '\x3cbutton class="btn primary" type="button" id="makeCodeBtn">Make my results code\x3c/button>\x3c/div>' +
+    '\x3cdiv id="codeArea" hidden>\x3ctextarea id="codeBox" readonly aria-label="Your results code">\x3c/textarea>' +
+    '\x3cdiv class="fields" style="margin-top:8px">\x3cbutton class="btn" type="button" id="copyCodeBtn">Copy code\x3c/button>\x3cspan id="codeMsg">\x3c/span>\x3c/div>\x3c/div>' +
+    '\x3c/div>';
+
+  const revise = PROBLEMS.map((p, i) => i).filter(i => scores[i] === undefined || scores[i] < PROBLEMS[i].marks);
+  html += '\x3ch3>Revise next\x3c/h3>';
+  if (!revise.length) html += '\x3cp>Full marks on every problem.\x3c/p>';
+  else {
+    html += '\x3col class="revise">';
+    revise.forEach(i => { html += '\x3cli>\x3cbutton type="button" data-go="' + i + '">' + esc(PROBLEMS[i].title) + '\x3c/button> · ' + esc(statusOf(i)[0].toLowerCase()) + '\x3c/li>'; });
+    html += '\x3c/ol>';
+  }
+
+  html += '\x3cdiv class="actions">\x3cbutton class="btn primary" type="button" id="backBtn">Back to the problems\x3c/button>' +
+    '\x3cbutton class="btn" type="button" id="copyBtn">Copy summary\x3c/button>' +
+    '\x3cbutton class="btn" type="button" id="resetAllBtn">Reset all results\x3c/button>\x3c/div>' +
+    '\x3cp class="lead" id="resultsMsg" style="margin-top:10px">\x3c/p>';
+
+  v.innerHTML = html;
+  try { $("pupilName").value = localStorage.getItem("smhs-hwp-name") || ""; $("pupilClass").value = localStorage.getItem("smhs-hwp-class") || ""; } catch (e) {}
+  $("makeCodeBtn").addEventListener("click", () => {
+    const name = $("pupilName").value.trim(), cls = $("pupilClass").value.trim();
+    if (!name) { $("codeArea").hidden = false; $("codeBox").value = ""; $("codeMsg").textContent = "Type your name first."; $("pupilName").focus(); return; }
+    try { localStorage.setItem("smhs-hwp-name", name); localStorage.setItem("smhs-hwp-class", cls); } catch (e) {}
+    $("codeBox").value = makeResultsCode(name, cls);
+    $("codeArea").hidden = false;
+    $("codeMsg").textContent = "Copy this code into your Teams assignment.";
+  });
+  $("copyCodeBtn").addEventListener("click", () => {
+    const box = $("codeBox");
+    const done = () => { $("codeMsg").textContent = "Code copied. Paste it into your Teams assignment."; };
+    const fallback = () => { box.focus(); box.select(); $("codeMsg").textContent = "Press Ctrl + C to copy the selected code."; };
+    try { navigator.clipboard.writeText(box.value).then(done, fallback); } catch (e) { fallback(); }
+  });
+  v.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => { load(parseInt(b.dataset.go, 10)); window.scrollTo({ top: 0 }); }));
+  $("backBtn").addEventListener("click", () => load(current));
+  $("copyBtn").addEventListener("click", () => {
+    const text = summaryText(got, total, pct, done, groups);
+    const msg = $("resultsMsg");
+    const ok = () => { msg.textContent = "Summary copied. Paste it wherever your teacher asks."; };
+    const fallback = () => {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.rows = 10; ta.style.width = "100%"; ta.readOnly = true;
+      msg.textContent = "Select this text and copy it:";
+      msg.after(ta); ta.focus(); ta.select();
+    };
+    try { navigator.clipboard.writeText(text).then(ok, fallback); } catch (e) { fallback(); }
+  });
+  $("resetAllBtn").addEventListener("click", e => {
+    if (!resetArmed) {
+      resetArmed = true;
+      e.target.textContent = "Press again to delete all scores";
+      $("resultsMsg").textContent = "This clears every score, hint count and mistake on this device.";
+      return;
+    }
+    scores = {}; stats = {};
+    Object.keys(hintsUsed).forEach(k => delete hintsUsed[k]);
+    saveScores(); saveStats(); buildNav(); showResults();
+    $("resultsMsg").textContent = "All results cleared.";
+  });
+  buildNav();
+}
+
+/* Results code: HWP1.&lt;base64url of [version, name, class, minutes since 1970, rows]>.&lt;4-character check>
+   Each row is [best score or -1, hints, checks, bit mask of the distractor lines placed]. */
+function checkSum(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return (h % 1679616).toString(36).padStart(4, "0");
+}
+function makeResultsCode(name, cls) {
+  const rows = PROBLEMS.map((p, i) => {
+    const s = stats[i] || {};
+    let bits = 0;
+    (s.mistakes || []).forEach(id => { bits |= 1 << parseInt(id.slice(1), 10); });
+    return [scores[i] === undefined ? -1 : scores[i], s.hints || 0, s.checks || 0, bits];
+  });
+  const json = JSON.stringify([1, name, cls, Math.floor(Date.now() / 60000), rows]);
+  const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return "HWP1." + b64 + "." + checkSum(b64);
+}
+
+function summaryText(got, total, pct, done, groups) {
+  const lines = ["Higher Web Parsons Problems: results", "Total: " + got + " / " + total + " (" + pct + "%), " + done + " of " + PROBLEMS.length + " problems complete", ""];
+  groups.forEach(g => lines.push(g.name + ": " + g.got + " / " + g.total));
+  lines.push("");
+  PROBLEMS.forEach((p, i) => {
+    const s = stats[i] || { hints: 0 };
+    lines.push((i + 1) + ". " + p.title + ": " + (scores[i] === undefined ? "not complete" : scores[i] + " / " + p.marks) + (s.hints ? " (" + s.hints + " hints)" : ""));
+  });
+  return lines.join("\n");
+}
+
+$("checkBtn").addEventListener("click", check);
+$("resetBtn").addEventListener("click", () => load(current));
+$("hintBtn").addEventListener("click", hint);
+$("nextBtn").addEventListener("click", () => { if (current < PROBLEMS.length - 1) { load(current + 1); window.scrollTo({ top: 0 }); } });
+
+if (window.Sortable) {
+  const opts = {
+    group: "parsons", animation: 150, ghostClass: "sortable-ghost", chosenClass: "sortable-chosen",
+    onStart: () => { justDragged = true; },
+    onEnd: () => { setTimeout(() => { justDragged = false; }, 50); changed(); }
+  };
+  Sortable.create(pool, opts);
+  Sortable.create(answer, opts);
+}
+
+load(0);
+</script>

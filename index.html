@@ -168,8 +168,9 @@ h2 { margin: 0 0 10px; font-size: 1.6rem; line-height: 1.2; text-wrap: balance; 
 .send p { margin: 0; }
 .send .fields { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
 .send label { display: grid; gap: 4px; font-size: .9rem; font-weight: 700; }
-.send input { font: inherit; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); min-width: 0; }
-.send input:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.send input, .send select { font: inherit; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); min-width: 0; }
+.send input, .send select { box-sizing: border-box; height: 40px; }
+.send input:focus-visible, .send select:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
 .send textarea { font-family: var(--font-code); font-size: .8rem; width: 100%; min-height: 84px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--code-bg); color: var(--fg); resize: vertical; word-break: break-all; }
 
 @media (max-width: 900px) {
@@ -623,6 +624,8 @@ const PROBLEMS = [
 ];
 
 /* ---------- App ---------- */
+/* Class codes offered in the results form. Add more, e.g. ["SE", "6I1"]. */
+const CLASSES = ["SE"];
 const STORE_KEY = "smhs-higher-web-parsons-scores-v1";
 let scores = {};   /* best score for each problem, by index */
 try { scores = JSON.parse(localStorage.getItem(STORE_KEY) || "{}") || {}; } catch (e) { scores = {}; }
@@ -805,6 +808,13 @@ function check() {
   const missing = sol.length - placed.filter(p => !p.it.distractor).length;
   const allRight = rightCount === sol.length && placed.length === sol.length;
 
+  /* First-check score: the marks this answer earns on the very first Check.
+     Part marks are in proportion to the needed lines in the right place, less any hints. */
+  if (st.first === undefined && st.checks === 1) {
+    const pm = PROBLEMS[current].marks, h = hintsUsed[current] || 0;
+    st.first = allRight ? Math.max(0, pm - h) : Math.max(0, Math.min(pm - 1, Math.round(pm * rightCount / sol.length)) - h);
+  }
+
   feedback.innerHTML = "";
   feedback.className = "feedback " + (allRight ? "ok" : "no");
   const head = document.createElement("p");
@@ -952,12 +962,12 @@ function showResults() {
   });
   html += '\x3c/div>';
 
-  html += '\x3ch3>By problem\x3c/h3>\x3cdiv class="table-wrap">\x3ctable>\x3cthead>\x3ctr>\x3cth>#\x3c/th>\x3cth>Problem\x3c/th>\x3cth>Style\x3c/th>\x3cth class="n">Score\x3c/th>\x3cth class="n">Hints\x3c/th>\x3cth class="n">Checks\x3c/th>\x3cth>Status\x3c/th>\x3c/tr>\x3c/thead>\x3ctbody>';
+  html += '\x3ch3>By problem\x3c/h3>\x3cp class="lead">First check is the score your answer would have earned the first time you pressed Check answer.\x3c/p>\x3cdiv class="table-wrap">\x3ctable>\x3cthead>\x3ctr>\x3cth>#\x3c/th>\x3cth>Problem\x3c/th>\x3cth>Style\x3c/th>\x3cth class="n">Score\x3c/th>\x3cth class="n">Hints\x3c/th>\x3cth class="n">Checks\x3c/th>\x3cth class="n">First check\x3c/th>\x3cth>Status\x3c/th>\x3c/tr>\x3c/thead>\x3ctbody>';
   PROBLEMS.forEach((p, i) => {
     const s = stats[i] || { checks: 0, hints: 0 };
     const st = statusOf(i);
     html += '\x3ctr>\x3ctd class="n">' + (i + 1) + '\x3c/td>\x3ctd class="wrap">' + esc(p.title) + '\x3c/td>\x3ctd>' + esc(p.kind.replace(" style", "")) + '\x3c/td>' +
-      '\x3ctd class="n">' + (scores[i] === undefined ? '–' : scores[i]) + ' / ' + p.marks + '\x3c/td>\x3ctd class="n">' + (s.hints || 0) + '\x3c/td>\x3ctd class="n">' + (s.checks || 0) + '\x3c/td>' +
+      '\x3ctd class="n">' + (scores[i] === undefined ? '–' : scores[i]) + ' / ' + p.marks + '\x3c/td>\x3ctd class="n">' + (s.hints || 0) + '\x3c/td>\x3ctd class="n">' + (s.checks || 0) + '\x3c/td>\x3ctd class="n">' + (s.first === undefined ? '–' : s.first + ' / ' + p.marks) + '\x3c/td>' +
       '\x3ctd>\x3cspan class="pill ' + st[1] + '">' + st[0] + '\x3c/span>\x3c/td>\x3c/tr>';
   });
   html += '\x3c/tbody>\x3c/table>\x3c/div>';
@@ -980,9 +990,9 @@ function showResults() {
   }
 
   html += '\x3ch3>Send your results to your teacher\x3c/h3>\x3cdiv class="send">' +
-    '\x3cp>Type your name and class, then make your results code. Copy the code and paste it into your Teams assignment.\x3c/p>' +
+    '\x3cp>Type your first name and surname, choose your class, then make your results code. Copy the code and paste it into your Teams assignment.\x3c/p>' +
     '\x3cdiv class="fields">\x3clabel for="pupilName">Name\x3cinput id="pupilName" type="text" maxlength="40" autocomplete="name">\x3c/label>' +
-    '\x3clabel for="pupilClass">Class\x3cinput id="pupilClass" type="text" maxlength="12" size="8">\x3c/label>' +
+    '\x3clabel for="pupilClass">Class\x3cselect id="pupilClass">' + (CLASSES.length > 1 ? '\x3coption value="">Choose…\x3c/option>' : '') + CLASSES.map(c => '\x3coption>' + esc(c) + '\x3c/option>').join("") + '\x3c/select>\x3c/label>' +
     '\x3cbutton class="btn primary" type="button" id="makeCodeBtn">Make my results code\x3c/button>\x3c/div>' +
     '\x3cdiv id="codeArea" hidden>\x3ctextarea id="codeBox" readonly aria-label="Your results code">\x3c/textarea>' +
     '\x3cdiv class="fields" style="margin-top:8px">\x3cbutton class="btn" type="button" id="copyCodeBtn">Copy code\x3c/button>\x3cspan id="codeMsg">\x3c/span>\x3c/div>\x3c/div>' +
@@ -1003,10 +1013,13 @@ function showResults() {
     '\x3cp class="lead" id="resultsMsg" style="margin-top:10px">\x3c/p>';
 
   v.innerHTML = html;
-  try { $("pupilName").value = localStorage.getItem("smhs-hwp-name") || ""; $("pupilClass").value = localStorage.getItem("smhs-hwp-class") || ""; } catch (e) {}
+  try { $("pupilName").value = localStorage.getItem("smhs-hwp-name") || ""; const c = localStorage.getItem("smhs-hwp-class"); if (CLASSES.includes(c)) $("pupilClass").value = c; } catch (e) {}
   $("makeCodeBtn").addEventListener("click", () => {
-    const name = $("pupilName").value.trim(), cls = $("pupilClass").value.trim();
-    if (!name) { $("codeArea").hidden = false; $("codeBox").value = ""; $("codeMsg").textContent = "Type your name first."; $("pupilName").focus(); return; }
+    const name = $("pupilName").value.trim().replace(/\s+/g, " "), cls = $("pupilClass").value;
+    const stop = (msg, el) => { $("codeArea").hidden = false; $("codeBox").value = ""; $("codeMsg").textContent = msg; el.focus(); };
+    if (!/^\S+( \S+)+$/.test(name)) return stop("Type your first name and your surname.", $("pupilName"));
+    if (!cls) return stop("Choose your class.", $("pupilClass"));
+    $("pupilName").value = name;
     try { localStorage.setItem("smhs-hwp-name", name); localStorage.setItem("smhs-hwp-class", cls); } catch (e) {}
     $("codeBox").value = makeResultsCode(name, cls);
     $("codeArea").hidden = false;
@@ -1048,7 +1061,7 @@ function showResults() {
 }
 
 /* Results code: HWP1.&lt;base64url of [version, name, class, minutes since 1970, rows]>.&lt;4-character check>
-   Each row is [best score or -1, hints, checks, bit mask of the distractor lines placed]. */
+   Each row is [best score or -1, hints, checks, bit mask of the distractor lines placed, first-check score or -1]. */
 function checkSum(s) {
   let h = 5381;
   for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
@@ -1059,7 +1072,7 @@ function makeResultsCode(name, cls) {
     const s = stats[i] || {};
     let bits = 0;
     (s.mistakes || []).forEach(id => { bits |= 1 << parseInt(id.slice(1), 10); });
-    return [scores[i] === undefined ? -1 : scores[i], s.hints || 0, s.checks || 0, bits];
+    return [scores[i] === undefined ? -1 : scores[i], s.hints || 0, s.checks || 0, bits, s.first === undefined ? -1 : s.first];
   });
   const json = JSON.stringify([1, name, cls, Math.floor(Date.now() / 60000), rows]);
   const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
